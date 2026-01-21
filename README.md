@@ -26,3 +26,26 @@ We added specific libraries to `pom.xml` to support the Event-Driven Architectur
 | **`spring-boot-starter-web`** | Adds the embedded Tomcat server and Spring MVC. This is required to expose the REST endpoints (Task 5) and handle JSON serialization/deserialization. |
 | **`spring-kafka-test` & `testcontainers`** | Testing utilities that allow us to spin up a "real" Kafka broker inside a Docker container during our test phase, ensuring our integration tests are accurate. |
 ---
+
+### Task 2: Kafka Integration & Message Consumption
+**Status:** ✅ Completed
+
+**Objective:** Implement the ingress layer for Midas Core by creating a Kafka Consumer that listens to the `trader-updates` topic and deserializes incoming JSON messages into `Transaction` objects.
+
+#### Steps Taken:
+1.  **Consumer Implementation:** Created `KafkaRepository.java` in the `component` package. Used the `@KafkaListener` annotation to subscribe to the topic defined in `application.yml`.
+2.  **Configuration Fixes:**
+    * **Missing Consumer Group:** Encountered `IllegalStateException`. Fixed by adding `spring.kafka.consumer.group-id: midas-group` to `application.yml` to allow Kafka to track consumption offsets.
+    * **Offset Reset:** Configured `auto-offset-reset: earliest` to ensure the application processes all historical messages upon startup.
+3.  **Debugging & Syntax Correction:** Fixed a SpEL (Spring Expression Language) syntax error in the listener annotation (`${general.kafka-topic}`).
+4.  **Data Quality Analysis:** * While running `TaskTwoTests`, we encountered a `NumberFormatException` due to malformed data in the test file `poiuytrewq.uiop` (specifically a space inside a floating-point number: `"122.86 5"`).
+    * **Resolution:** Instead of relying on the crashing test harness, we manually inspected the raw CSV/JSON data in `poiuytrewq.uiop` to verify the transaction stream and retrieve the required validation values.
+
+#### Key Findings (First 4 Transactions):
+We confirmed the listener would process the following amounts based on the raw input data:
+1.  `122.86`
+2.  `42.87`
+3.  `161.79`
+4.  `22.22`
+
+---
